@@ -13,52 +13,45 @@ html, body {
 }
 
 /* PANEL */
+.panel-header {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  background: #5a141f;
+}
+/* PANEL – EFECTO VIDRIO */
 .panel {
   position: absolute;
   left: 0;
   top: 0;
   width: 320px;
   height: 100%;
-  background: #5a141f;
-  border-right: 1px solid #2b2b2b;
-  overflow-y: auto;
   z-index: 1000;
+
+  /* Glassmorphism */
+  background: rgba(90, 20, 31, 0.55);     /* color base translúcido */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  border-right: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+
+  overflow-y: auto;
   transition: transform 0.3s ease;
 }
+
 
 .panel.oculto {
   transform: translateX(-100%);
 }
-
-.titulo {
-  margin: 10px;
-  color: #ffffff;
-  font-size: 32px;
-}
-
-/* BLOQUES */
-.bloque {
-  border-bottom: 1px solid #ffffff;
-}
-
-.bloque h4 {
-  margin: 0;
-  padding: 8px;
-  background: #000000;
-  opacity: 70%;
-  color: #ffffff;
-  font-size: 20px;
-  cursor: pointer;
-}
-
 /* BOTÓN */
 .btn-panel {
   position: absolute;
   top: 15px;
-  left: 30px;
+  left: 320px;              
   z-index: 2000;
   background: #9D2449;
-  color: hwb(120 96% 3%);
+  color: white;
   border: none;
   padding: 10px 12px;
   font-size: 18px;
@@ -68,13 +61,66 @@ html, body {
 }
 
 /* Cuando el panel está oculto */
-.panel.oculto + .btn-panel,
-.panel.oculto ~ .btn-panel {
-  left: 10px; /* se mueve a la izquierda cuando el panel está oculto */
+.panel.oculto + .btn-panel {
+  left: 0px;             
 }
 
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  background: linear-gradient(
+    120deg,
+    rgba(255,255,255,0.15),
+    rgba(255,255,255,0.05),
+    rgba(255,255,255,0)
+  );
+
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.panel:hover::before {
+  opacity: 1;
+}
+
+
+/* TÍTULO */
+
+.titulo {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  margin: 0;
+  padding: 14px;
+  font-size: 26px;
+  color: #ffffff;
+
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+
+
+/* BLOQUES */
+.bloque {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.bloque h4 {
+  background: rgba(255, 255, 255, 0.25);
+  color: #000;
+  backdrop-filter: blur(6px);
+}
+
+
+
 .item input[type="checkbox"] {
-  accent-color: #19d313; /* color azul actual */
+  accent-color: #19d313; 
 }
 
 /* Checkbox personalizado */
@@ -110,17 +156,32 @@ html, body {
 /* TEXTO NORMAL */
 .item span {
   color: #ffffff;
-  font-weight: bold;
-  cursor: pointer;
   transition: color 0.2s ease;
 }
 
 /* HOVER */
 .item span:hover {
-  color: #ffd54f; /* ← color al pasar el cursor (amarillo suave) */
+  color: #ffe082; /* dorado suave */
 }
 
 /* CUANDO SE HACE CLICK */
 .item span:active {
   color: #ff9800; /* ← color al presionar */
+}
+.boton-fijo {
+  position: sticky;
+  top: 64px; /* justo debajo del título */
+  z-index: 9;
+
+  margin: 10px;
+  padding: 10px;
+  width: calc(100% - 20px);
+
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 8px;
+
+  backdrop-filter: blur(10px);
+  cursor: pointer;
 }
