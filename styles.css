@@ -214,3 +214,23 @@ html, body {
 .panel.oculto ~ .btn-centro {
   left: 0px;
 }
+/* CSS */
+.popup-hover {
+  min-width: 180px;       /* ancho mínimo para que se vea el botón */
+  max-width: 250px;       /* evita que se salga del popup */
+  font-size: 14px;
+}
+.popup-contenido button.btn-direcciones {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 4px 6px;
+  font-size: 13px;
+  background: #9D2449;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.popup-contenido button.btn-direcciones:hover {
+  background: #b5395d;
+}
