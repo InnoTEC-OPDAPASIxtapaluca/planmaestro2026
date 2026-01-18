@@ -352,12 +352,7 @@ btnGeneral.addEventListener("click", () => {
   btnGeneral.textContent = apagar ? "Encender todo el mapa" : "Apagar todo el mapa";
 });
 
-  btnGeneral.textContent = apagar
-    ? "Encender todo el mapa"
-    : "Apagar todo el mapa";
-});
-
-// ============================
+ // ============================
 // ZOOM AUTOMÁTICO AL CARGAR
 // ============================
 function zoomAutomatico() {
