@@ -59,7 +59,9 @@ html, body {
   cursor: pointer;
   transition: left 0.3s ease;
 }
-
+.btn-panel:hover {
+  background: #b5395d;
+}
 /* Cuando el panel está oculto */
 .panel.oculto + .btn-panel {
   left: 0px;             
@@ -184,4 +186,31 @@ html, body {
 
   backdrop-filter: blur(10px);
   cursor: pointer;
+}
+
+/* Botón centrar mapa */
+.btn-centro {
+  position: absolute;
+  top: 65px; /* justo debajo del botón de panel */
+  left: 320px; /* ancho del panel */
+  z-index: 2000;
+  background: #9D2449;
+  border: none;
+  padding: 8px;
+  border-radius: 0 6px 6px 0;
+  cursor: pointer;
+  transition: left 0.3s ease;
+}
+
+.btn-centro img {
+  display: block;
+}
+
+.btn-centro:hover {
+  background: #b5395d;
+}
+
+/* Cuando el panel está oculto, mueve el botón */
+.panel.oculto ~ .btn-centro {
+  left: 0px;
 }
