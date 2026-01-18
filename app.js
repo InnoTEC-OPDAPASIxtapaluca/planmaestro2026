@@ -327,29 +327,30 @@ function construirLista() {
 }
 
 // ============================
-// BOTÓN ENCENDER / APAGAR TODO EL MAPA
+// BOTÓN GENERAL (HTML)
 // ============================
 const btnGeneral = document.getElementById("btnGeneral");
-
 btnGeneral.addEventListener("click", () => {
   const apagar = btnGeneral.textContent === "Apagar todo el mapa";
 
   Object.keys(capas).forEach(apartado => {
     Object.keys(capas[apartado]).forEach(bloque => {
       const grupo = capas[apartado][bloque];
+      if (apagar) map.removeLayer(grupo);
+      else grupo.addTo(map);
 
-      if (apagar) {
-        map.removeLayer(grupo);
-      } else {
-        grupo.addTo(map);
-      }
-
-      // Sincroniza checkboxes
-      const checkbox = document.querySelector(
-        `.item span[textContent="${bloque}"]`
+      const divItem = Array.from(document.querySelectorAll(".item")).find(
+        d => d.querySelector("span").textContent === bloque
       );
+      if (divItem) divItem.querySelector("input").checked = !apagar;
     });
+
+    const btnApartado = controlesApartados[apartado];
+    if (btnApartado) btnApartado.textContent = apagar ? "Encender todo" : "Apagar todo";
   });
+
+  btnGeneral.textContent = apagar ? "Encender todo el mapa" : "Apagar todo el mapa";
+});
 
   btnGeneral.textContent = apagar
     ? "Encender todo el mapa"
