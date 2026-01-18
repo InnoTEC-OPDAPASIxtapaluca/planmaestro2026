@@ -8,6 +8,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
+
 // ============================
 // ICONO PUNTOS
 // ============================
@@ -53,7 +54,7 @@ function cerrarPanelEnMovil() {
 
   const panel = document.getElementById("panel");
   const btn = document.querySelector(".btn-panel");
-
+  
   panel.classList.add("oculto");
   btn.style.left = "10px";
 }
@@ -100,38 +101,7 @@ function parseWKT(wkt) {
 // ============================
 // HOVER / TOOLTIP
 // ============================
-function aplicarHover(layer, row) {
-  const contenido = `
-    <div>
-      <b>${row.Nombre || "Sin nombre"}</b><br>
-      ${row.Descripción || ""}
-    </div>
-  `;
 
-  layer.bindTooltip(contenido, {
-    direction: "top",
-    sticky: true,
-    opacity: 0.95
-  });
-
-  layer.on("mouseover", () => {
-    if (layer.setStyle) {
-      layer.setStyle({
-        weight: 5,
-        fillOpacity: 0.7
-      });
-    }
-  });
-
-  layer.on("mouseout", () => {
-    if (layer.setStyle) {
-      layer.setStyle({
-        weight: 2,
-        fillOpacity: 0.5
-      });
-    }
-  });
-}
 // ============================
 // CARGA CSV
 // ============================
@@ -183,50 +153,56 @@ Papa.parse("datos.csv", {
     zoomAutomatico();
   }
 });
-
 function aplicarHover(layer, row) {
   const contenido = `
-    <b>${row.Nombre || ""}</b><br>
+    <b>${row.Nombre || "Sin nombre"}</b><br>
     ${row.Descripción || ""}
   `;
 
   let fijadoPorClick = false;
 
-  // HOVER
-  layer.on("mouseover", function (e) {
-    if (fijadoPorClick) return;
-
-    this.bindPopup(contenido, {
-      closeButton: true,
-      autoClose: false,
-      closeOnClick: false,
-      className: "popup-hover"
-    }).openPopup(e.latlng);
+  // Bind del popup una sola vez
+  layer.bindPopup(contenido, {
+    closeButton: true,
+    autoClose: false,
+    closeOnClick: false,
+    className: "popup-hover"
   });
 
-  // SALIR DEL HOVER
-  layer.on("mouseout", function () {
-    if (fijadoPorClick) return;
-    this.closePopup();
+  // HOVER visual y popup (solo si no está fijado)
+  layer.on("mouseover", function(e) {
+    // Cambiar estilo si es polygon o polyline
+    if (layer.setStyle) {
+      layer.setStyle({ weight: 5, fillOpacity: 0.7 });
+    }
+
+    if (!fijadoPorClick && !esMovil()) {
+      this.openPopup(e.latlng);
+    }
   });
 
-  // CLICK → SE QUEDA ABIERTA
-  layer.on("click", function (e) {
+  layer.on("mouseout", function() {
+    if (layer.setStyle) {
+      layer.setStyle({ weight: 2, fillOpacity: 0.5 });
+    }
+
+    if (!fijadoPorClick && !esMovil()) {
+      this.closePopup();
+    }
+  });
+
+  // CLICK → se queda abierta
+  layer.on("click", function(e) {
     fijadoPorClick = true;
-
-    this.bindPopup(contenido, {
-      closeButton: true,
-      autoClose: false,
-      closeOnClick: false,
-      className: "popup-hover"
-    }).openPopup(e.latlng);
+    this.openPopup(e.latlng);
   });
 
-  // CUANDO EL USUARIO CIERRA LA TARJETA
-  layer.on("popupclose", function () {
+  // Cuando se cierra la popup
+  layer.on("popupclose", function() {
     fijadoPorClick = false;
   });
 }
+
 
 // ============================
 // CONSTRUIR LISTA CON APARTADOS Y BLOQUES
@@ -402,3 +378,8 @@ panel.addEventListener("scroll", () => {
   panel.style.background = `rgba(90, 20, 31, ${alpha})`;
 });
 btnGeneral.classList.add("boton-fijo");
+
+const btnCentro = document.getElementById("btnCentroMapa");
+btnCentro.addEventListener("click", () => {
+  map.setView([19.35369, -98.79454], 12); // vuelve a la vista inicial
+});
