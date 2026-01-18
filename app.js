@@ -153,55 +153,83 @@ Papa.parse("datos.csv", {
     zoomAutomatico();
   }
 });
+
 function aplicarHover(layer, row) {
+  const lat = row.Latitud || layer.getLatLng?.()?.lat || (layer.getBounds ? layer.getBounds().getCenter().lat : 0);
+  const lng = row.Longitud || layer.getLatLng?.()?.lng || (layer.getBounds ? layer.getBounds().getCenter().lng : 0);
+
   const contenido = `
-    <b>${row.Nombre || "Sin nombre"}</b><br>
-    ${row.Descripción || ""}
+    <div class="popup-contenido">
+      <b>${row.Nombre || "Sin nombre"}</b><br>
+      ${row.Descripción || ""}<br><br>
+      <button class="btn-direcciones" onclick="abrirGoogleMaps(${lat}, ${lng})">
+        🚗 Cómo llegar
+      </button>
+    </div>
   `;
 
-  let fijadoPorClick = false;
+  let popupFijado = false;
 
-  // Bind del popup una sola vez
-  layer.bindPopup(contenido, {
+  // Hover temporal
+  layer.on("mouseover", function(e) {
+    if (!popupFijado) {
+      if (layer.setStyle) layer.setStyle({ weight: 5, fillOpacity: 0.7 });
+      this.openPopup(); // Abrimos popup existente
+    }
+  });
+
+  layer.on("mouseout", function() {
+    if (!popupFijado) {
+      if (layer.setStyle) layer.setStyle({ weight: 2, fillOpacity: 0.5 });
+      this.closePopup();
+    }
+  });
+
+  // Click directo en el mapa → popup fijo
+  layer.on("click", function(e) {
+    popupFijado = true;
+    if (layer.setStyle) layer.setStyle({ weight: 5, fillOpacity: 0.7 });
+    if (!layer.getPopup()) layer.bindPopup(contenido);
+    this.openPopup();
+  });
+
+  // Cerrar popup → reset
+  layer.on("popupclose", function() {
+    popupFijado = false;
+    if (layer.setStyle) layer.setStyle({ weight: 2, fillOpacity: 0.5 });
+  });
+
+  // Abrir popup temporal desde panel → NO se queda fijo
+  layer.abrirTemporal = function() {
+    popupFijado = false; // reset estado temporal
+
+    // 🔹 Abrir el popup ya existente
+     if (!layer.getPopup()) layer.bindPopup(contenido, {
     closeButton: true,
     autoClose: false,
     closeOnClick: false,
     className: "popup-hover"
   });
 
-  // HOVER visual y popup (solo si no está fijado)
-  layer.on("mouseover", function(e) {
-    // Cambiar estilo si es polygon o polyline
-    if (layer.setStyle) {
-      layer.setStyle({ weight: 5, fillOpacity: 0.7 });
+    layer.openPopup();
+
+    // 🔹 Encender bloque si estaba apagado
+    if (row.Apartado && row.Bloque) {
+      const grupo = capas[row.Apartado]?.[row.Bloque];
+      if (grupo && !map.hasLayer(grupo)) grupo.addTo(map);
+
+      const divItem = Array.from(document.querySelectorAll(".item")).find(
+        d => d.querySelector("span").textContent === row.Bloque
+      );
+      if (divItem) divItem.querySelector("input").checked = true;
     }
 
-    if (!fijadoPorClick && !esMovil()) {
-      this.openPopup(e.latlng);
-    }
-  });
-
-  layer.on("mouseout", function() {
-    if (layer.setStyle) {
-      layer.setStyle({ weight: 2, fillOpacity: 0.5 });
-    }
-
-    if (!fijadoPorClick && !esMovil()) {
-      this.closePopup();
-    }
-  });
-
-  // CLICK → se queda abierta
-  layer.on("click", function(e) {
-    fijadoPorClick = true;
-    this.openPopup(e.latlng);
-  });
-
-  // Cuando se cierra la popup
-  layer.on("popupclose", function() {
-    fijadoPorClick = false;
-  });
+    // Zoom al layer
+    const fg = L.featureGroup([layer]);
+    map.fitBounds(fg.getBounds(), { padding: [40, 40], maxZoom: 17 });
+  };
 }
+
 
 
 // ============================
@@ -274,17 +302,24 @@ function construirLista() {
   grupo.eachLayer(layer => features.push(layer));
 
   if (!features.length) return;
+  
+  // 🔹 Encender el bloque si estaba apagado
+  if (!map.hasLayer(grupo)) {
+    grupo.addTo(map);
+    chk.checked = true;
+  }
 
+  // Zoom al grupo
   const fg = L.featureGroup(features);
   const bounds = fg.getBounds();
   if (bounds.isValid()) {
     map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
   }
 
-  const primerLayer = features[0];
-  if (primerLayer.getPopup()) {
-    primerLayer.openPopup();
-  }
+ const primerLayer = features[0];
+if (primerLayer.abrirTemporal) {
+  primerLayer.abrirTemporal(); // popup temporal sin fijarse
+}
 
   // 📱 OCULTAR PANEL Y MANTENER BOTÓN FUNCIONAL
   if (window.innerWidth <= 768) {
@@ -383,3 +418,4 @@ const btnCentro = document.getElementById("btnCentroMapa");
 btnCentro.addEventListener("click", () => {
   map.setView([19.35369, -98.79454], 12); // vuelve a la vista inicial
 });
+
