@@ -21,6 +21,8 @@ const iconoPunto = L.icon({
 // ============================
 // CONTENEDORES GLOBALES
 // ============================
+const layersConPopupAbierto = [];
+
 const lista = document.getElementById("lista");
 const capas = {};           // Apartado -> Bloque -> LayerGroup
 const capasGlobales = [];   // Todos los layers individuales
@@ -29,13 +31,43 @@ const controlesApartados = {}; // Botones de cada apartado
 // ============================
 // TOGGLE PANEL
 // ============================
+// ============================
+// TOGGLE PANEL (DESKTOP + MÓVIL)
+// ============================
+function esMovil() {
+  return window.innerWidth <= 768;
+}
+
 window.togglePanel = function () {
   const panel = document.getElementById("panel");
   const btn = document.querySelector(".btn-panel");
 
   const oculto = panel.classList.toggle("oculto");
-  btn.style.left = oculto ? "0px" : "320px";
+
+  // Desktop
+  if (!esMovil()) {
+    btn.style.left = oculto ? "0px" : "320px";
+  }
+
+  // Móvil
+  if (esMovil()) {
+    btn.style.left = oculto ? "10px" : "10px";
+  }
 };
+
+// ============================
+// CERRAR PANEL AUTOMÁTICO EN MÓVIL
+// ============================
+function cerrarPanelEnMovil() {
+  if (!esMovil()) return;
+
+  const panel = document.getElementById("panel");
+  const btn = document.querySelector(".btn-panel");
+
+  panel.classList.add("oculto");
+  btn.style.left = "10px";
+}
+
 
 // ============================
 // PARSER WKT
@@ -76,6 +108,41 @@ function parseWKT(wkt) {
 }
 
 // ============================
+// HOVER / TOOLTIP
+// ============================
+function aplicarHover(layer, row) {
+  const contenido = `
+    <div>
+      <b>${row.Nombre || "Sin nombre"}</b><br>
+      ${row.Descripción || ""}
+    </div>
+  `;
+
+  layer.bindTooltip(contenido, {
+    direction: "top",
+    sticky: true,
+    opacity: 0.95
+  });
+
+  layer.on("mouseover", () => {
+    if (layer.setStyle) {
+      layer.setStyle({
+        weight: 5,
+        fillOpacity: 0.7
+      });
+    }
+  });
+
+  layer.on("mouseout", () => {
+    if (layer.setStyle) {
+      layer.setStyle({
+        weight: 2,
+        fillOpacity: 0.5
+      });
+    }
+  });
+}
+// ============================
 // CARGA CSV
 // ============================
 Papa.parse("datos.csv", {
@@ -115,22 +182,82 @@ Papa.parse("datos.csv", {
         }).bindPopup(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
       }
 
-      if (layer) {
+     if (layer) {
+        aplicarHover(layer, row); // 
         layer.addTo(capas[apartado][bloque]);
         capasGlobales.push(layer);
       }
     });
-
+  
     construirLista();
     zoomAutomatico();
   }
 });
+
+function aplicarHover(layer, row) {
+  const contenido = `
+    <b>${row.Nombre || ""}</b><br>
+    ${row.Descripción || ""}
+  `;
+
+  let fijadoPorClick = false;
+
+  // HOVER
+  layer.on("mouseover", function (e) {
+    if (fijadoPorClick) return;
+
+    this.bindPopup(contenido, {
+      closeButton: true,
+      autoClose: false,
+      closeOnClick: false,
+      className: "popup-hover"
+    }).openPopup(e.latlng);
+  });
+
+  // SALIR DEL HOVER
+  layer.on("mouseout", function () {
+    if (fijadoPorClick) return;
+    this.closePopup();
+  });
+
+  // CLICK → SE QUEDA ABIERTA
+  layer.on("click", function (e) {
+    fijadoPorClick = true;
+
+    this.bindPopup(contenido, {
+      closeButton: true,
+      autoClose: false,
+      closeOnClick: false,
+      className: "popup-hover"
+    }).openPopup(e.latlng);
+  });
+
+  // CUANDO EL USUARIO CIERRA LA TARJETA
+  layer.on("popupclose", function () {
+    fijadoPorClick = false;
+  });
+}
 
 // ============================
 // CONSTRUIR LISTA CON APARTADOS Y BLOQUES
 // ============================
 function construirLista() {
   lista.innerHTML = "";
+
+  const btnCerrarPopups = document.createElement("button");
+  btnCerrarPopups.textContent = "Cerrar todas las tarjetas";
+  btnCerrarPopups.style.margin = "10px";
+  btnCerrarPopups.style.width = "90%";
+  btnCerrarPopups.style.cursor = "pointer";
+
+  btnCerrarPopups.addEventListener("click", () => {
+    layersConPopupAbierto.forEach(layer => {
+      layer.closePopup(); // 👈 AQUÍ SÍ FUNCIONA
+    });
+    layersConPopupAbierto.length = 0;
+  });
+
+  lista.appendChild(btnCerrarPopups);
 
   // Botón general arriba
   const btnGeneral = document.createElement("button");
@@ -173,7 +300,6 @@ function construirLista() {
 
     const hApartado = document.createElement("h4");
     hApartado.textContent = apartado;
-    hApartado.style.color = "#4B0082"; // Color de texto del apartado
     divApartado.appendChild(hApartado);
 
     // Botón apagar/encender todo del apartado
@@ -222,7 +348,7 @@ function construirLista() {
       label.textContent = bloque;
       label.style.cursor = "pointer";
       label.style.fontWeight = "bold";
-      label.style.color = "#1f21b4"; // Color de los bloques (azul)
+      
 
       label.addEventListener("click", () => {
         const grupo = capas[apartado][bloque];
@@ -232,6 +358,13 @@ function construirLista() {
         const fg = L.featureGroup(features);
         const bounds = fg.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+        // 🪪 Abrir la tarjeta del primer elemento
+        const primerLayer = features[0];
+        if (primerLayer.getPopup()) {
+       primerLayer.openPopup();
+        }
+        //cerrar panel en móvil
+  cerrarPanelEnMovil();
       });
 
       divBloque.appendChild(chk);
@@ -275,3 +408,7 @@ fetch('./data/poligono_ixtapaluca.json')
     map.fitBounds(poligonoIxtapaluca.getBounds());
   })
   .catch(err => console.error('Error cargando poligono_ixtapaluca.geojson:', err));
+
+function esMovil() {
+  return window.innerWidth <= 768;
+}
