@@ -29,31 +29,21 @@ const capasGlobales = [];   // Todos los layers individuales
 const controlesApartados = {}; // Botones de cada apartado
 
 // ============================
-// TOGGLE PANEL
-// ============================
-// ============================
 // TOGGLE PANEL (DESKTOP + MÓVIL)
 // ============================
 function esMovil() {
   return window.innerWidth <= 768;
 }
-
+function cerrarPanel() {
+  const panel = document.getElementById("panel");
+  panel.classList.add("oculto");
+}
+// ============================
 window.togglePanel = function () {
   const panel = document.getElementById("panel");
-  const btn = document.querySelector(".btn-panel");
-
-  const oculto = panel.classList.toggle("oculto");
-
-  // Desktop
-  if (!esMovil()) {
-    btn.style.left = oculto ? "0px" : "320px";
-  }
-
-  // Móvil
-  if (esMovil()) {
-    btn.style.left = oculto ? "10px" : "10px";
-  }
+  panel.classList.toggle("oculto");
 };
+
 
 // ============================
 // CERRAR PANEL AUTOMÁTICO EN MÓVIL
@@ -244,55 +234,7 @@ function aplicarHover(layer, row) {
 function construirLista() {
   lista.innerHTML = "";
 
-  const btnCerrarPopups = document.createElement("button");
-  btnCerrarPopups.textContent = "Cerrar todas las tarjetas";
-  btnCerrarPopups.style.margin = "10px";
-  btnCerrarPopups.style.width = "90%";
-  btnCerrarPopups.style.cursor = "pointer";
-
-  btnCerrarPopups.addEventListener("click", () => {
-    layersConPopupAbierto.forEach(layer => {
-      layer.closePopup(); // 👈 AQUÍ SÍ FUNCIONA
-    });
-    layersConPopupAbierto.length = 0;
-  });
-
-  lista.appendChild(btnCerrarPopups);
-
-  // Botón general arriba
-  const btnGeneral = document.createElement("button");
-  btnGeneral.textContent = "Apagar todo el mapa";
-  btnGeneral.style.margin = "10px";
-  btnGeneral.style.cursor = "pointer";
-  lista.appendChild(btnGeneral);
-
-  btnGeneral.addEventListener("click", () => {
-    const apagar = btnGeneral.textContent === "Apagar todo el mapa";
-
-    Object.keys(capas).forEach(apartado => {
-      Object.keys(capas[apartado]).forEach(bloque => {
-        const grupo = capas[apartado][bloque];
-        const divItem = Array.from(lista.querySelectorAll(".item")).find(
-          d => d.querySelector("span").textContent === bloque
-        );
-        const chk = divItem.querySelector("input");
-
-        if (apagar) {
-          map.removeLayer(grupo);
-          chk.checked = false;
-        } else {
-          grupo.addTo(map);
-          chk.checked = true;
-        }
-      });
-
-      const btnApartado = controlesApartados[apartado];
-      if (btnApartado) btnApartado.textContent = apagar ? "Encender todo" : "Apagar todo";
-    });
-
-    btnGeneral.textContent = apagar ? "Encender todo el mapa" : "Apagar todo el mapa";
-  });
-
+  
   // Crear los apartados
   Object.keys(capas).forEach(apartado => {
     const divApartado = document.createElement("div");
@@ -351,21 +293,29 @@ function construirLista() {
       
 
       label.addEventListener("click", () => {
-        const grupo = capas[apartado][bloque];
-        const features = [];
-        grupo.eachLayer(layer => features.push(layer));
-        if (!features.length) return;
-        const fg = L.featureGroup(features);
-        const bounds = fg.getBounds();
-        if (bounds.isValid()) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
-        // 🪪 Abrir la tarjeta del primer elemento
-        const primerLayer = features[0];
-        if (primerLayer.getPopup()) {
-       primerLayer.openPopup();
-        }
-        //cerrar panel en móvil
-  cerrarPanelEnMovil();
-      });
+  const grupo = capas[apartado][bloque];
+  const features = [];
+  grupo.eachLayer(layer => features.push(layer));
+
+  if (!features.length) return;
+
+  const fg = L.featureGroup(features);
+  const bounds = fg.getBounds();
+  if (bounds.isValid()) {
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 17 });
+  }
+
+  const primerLayer = features[0];
+  if (primerLayer.getPopup()) {
+    primerLayer.openPopup();
+  }
+
+  // 📱 OCULTAR PANEL Y MANTENER BOTÓN FUNCIONAL
+  if (window.innerWidth <= 768) {
+    cerrarPanel();
+  }
+});
+
 
       divBloque.appendChild(chk);
       divBloque.appendChild(label);
@@ -375,6 +325,36 @@ function construirLista() {
     lista.appendChild(divApartado);
   });
 }
+
+// ============================
+// BOTÓN ENCENDER / APAGAR TODO EL MAPA
+// ============================
+const btnGeneral = document.getElementById("btnGeneral");
+
+btnGeneral.addEventListener("click", () => {
+  const apagar = btnGeneral.textContent === "Apagar todo el mapa";
+
+  Object.keys(capas).forEach(apartado => {
+    Object.keys(capas[apartado]).forEach(bloque => {
+      const grupo = capas[apartado][bloque];
+
+      if (apagar) {
+        map.removeLayer(grupo);
+      } else {
+        grupo.addTo(map);
+      }
+
+      // Sincroniza checkboxes
+      const checkbox = document.querySelector(
+        `.item span[textContent="${bloque}"]`
+      );
+    });
+  });
+
+  btnGeneral.textContent = apagar
+    ? "Encender todo el mapa"
+    : "Apagar todo el mapa";
+});
 
 // ============================
 // ZOOM AUTOMÁTICO AL CARGAR
@@ -412,3 +392,17 @@ fetch('./data/poligono_ixtapaluca.json')
 function esMovil() {
   return window.innerWidth <= 768;
 }
+window.togglePanel = function () {
+  const panel = document.getElementById("panel");
+  panel.classList.toggle("oculto");
+};
+
+const panel = document.getElementById("panel");
+
+panel.addEventListener("scroll", () => {
+  const scroll = panel.scrollTop;
+  const alpha = Math.min(0.85, 0.45 + scroll / 600);
+
+  panel.style.background = `rgba(90, 20, 31, ${alpha})`;
+});
+btnGeneral.classList.add("boton-fijo");
