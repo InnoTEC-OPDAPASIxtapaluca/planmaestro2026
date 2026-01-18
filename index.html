@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>OPDAPAS Ixtapaluca</title>
+  <title>Mapa OPDAPAS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property="og:description" content="Visualiza la infraestructura hidráulica de Ixtapaluca: pozos, tanques y líneas de conducción del Plan Maestro 2026.">
   
@@ -13,13 +13,18 @@
 <body>
 
 <div class="panel" id="panel">
-  <h3 class="titulo">Plan Maestro 2026</h3>
+  <div class="panel-header">
+    <h3 class="titulo">Plan Maestro 2026</h3>
+    <button class="btn-mapa" id="btnGeneral">
+      Apagar todo el mapa
+    </button>
+  </div>
+
   <div id="lista"></div>
 </div>
 
-<div id="map"></div>
-
 <button class="btn-panel" onclick="togglePanel()">☰</button>
+<div id="map"></div>
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
