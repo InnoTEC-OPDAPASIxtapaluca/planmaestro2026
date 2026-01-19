@@ -155,10 +155,17 @@ Papa.parse("datos.csv", {
 });
 
 function aplicarHover(layer, row) {
-  const lat = row.Latitud || layer.getLatLng?.()?.lat || (layer.getBounds ? layer.getBounds().getCenter().lat : 0);
-  const lng = row.Longitud || layer.getLatLng?.()?.lng || (layer.getBounds ? layer.getBounds().getCenter().lng : 0);
 
-  const contenido = `
+  const lat = row.Latitud 
+    || layer.getLatLng?.()?.lat 
+    || (layer.getBounds ? layer.getBounds().getCenter().lat : 0);
+
+  const lng = row.Longitud 
+    || layer.getLatLng?.()?.lng 
+    || (layer.getBounds ? layer.getBounds().getCenter().lng : 0);
+
+  // 🔹 Contenido COMPLETO (solo para click)
+  const contenidoCompleto = `
     <div class="popup-contenido">
       <b>${row.Nombre || "Sin nombre"}</b><br>
       ${row.Descripción || ""}<br><br>
@@ -170,67 +177,71 @@ function aplicarHover(layer, row) {
 
   let popupFijado = false;
 
-  // Hover temporal
-  layer.on("mouseover", function(e) {
+  // =========================
+  // HOVER (popup simple)
+  // =========================
+  layer.on("mouseover", function () {
     if (!popupFijado) {
       if (layer.setStyle) layer.setStyle({ weight: 5, fillOpacity: 0.7 });
-      this.openPopup(); // Abrimos popup existente
+      this.openPopup();
     }
   });
 
-  layer.on("mouseout", function() {
+  layer.on("mouseout", function () {
     if (!popupFijado) {
       if (layer.setStyle) layer.setStyle({ weight: 2, fillOpacity: 0.5 });
       this.closePopup();
     }
   });
 
-  // Click directo en el mapa → popup fijo
-  layer.on("click", function(e) {
+  // =========================
+  // CLICK (popup completo)
+  // =========================
+  layer.on("click", function () {
     popupFijado = true;
+
+    // 🔹 Reemplazar contenido SOLO al hacer click
+    this.setPopupContent(contenidoCompleto);
+
     if (layer.setStyle) layer.setStyle({ weight: 5, fillOpacity: 0.7 });
-    if (!layer.getPopup()) layer.bindPopup(contenido);
     this.openPopup();
   });
 
-  // Cerrar popup → reset
-  layer.on("popupclose", function() {
+  // =========================
+  // AL CERRAR → volver a simple
+  // =========================
+  layer.on("popupclose", function () {
     popupFijado = false;
+
+    // Volver al contenido simple original
+    this.setPopupContent(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
+
     if (layer.setStyle) layer.setStyle({ weight: 2, fillOpacity: 0.5 });
   });
 
-  // Abrir popup temporal desde panel → NO se queda fijo
-  layer.abrirTemporal = function() {
-    popupFijado = false; // reset estado temporal
+  // =========================
+  // PANEL LATERAL (temporal)
+  // =========================
+  layer.abrirTemporal = function () {
+    popupFijado = false;
 
-    // 🔹 Abrir el popup ya existente
-     if (!layer.getPopup()) layer.bindPopup(contenido, {
-    closeButton: true,
-    autoClose: false,
-    closeOnClick: false,
-    className: "popup-hover"
-  });
+    this.setPopupContent(contenidoCompleto);
+    this.openPopup();
 
-    layer.openPopup();
-
-    // 🔹 Encender bloque si estaba apagado
-    if (row.Apartado && row.Bloque) {
-      const grupo = capas[row.Apartado]?.[row.Bloque];
-      if (grupo && !map.hasLayer(grupo)) grupo.addTo(map);
-
-      const divItem = Array.from(document.querySelectorAll(".item")).find(
-        d => d.querySelector("span").textContent === row.Bloque
-      );
-      if (divItem) divItem.querySelector("input").checked = true;
-    }
-
-    // Zoom al layer
     const fg = L.featureGroup([layer]);
     map.fitBounds(fg.getBounds(), { padding: [40, 40], maxZoom: 17 });
   };
 }
 
+function abrirGoogleMaps(lat, lng) {
+  if (!lat || !lng) {
+    console.error("Coordenadas inválidas:", lat, lng);
+    return;
+  }
 
+  const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`;
+  window.open(url, "_blank");
+}
 
 // ============================
 // CONSTRUIR LISTA CON APARTADOS Y BLOQUES
