@@ -10,14 +10,23 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 
 
 // ============================
-// ICONO PUNTOS
+// ICONOS DINÁMICOS POR CSV
 // ============================
-const iconoPunto = L.icon({
-  iconUrl: "./imagenes/iconopozos.png",
-  iconSize: [34, 34],
-  iconAnchor: [17, 34],
-  popupAnchor: [0, -28]
-});
+const iconos = {};
+
+function obtenerIcono(nombreIcono) {
+  if (!nombreIcono) nombreIcono = "default";
+
+  if (!iconos[nombreIcono]) {
+    iconos[nombreIcono] = L.icon({
+      iconUrl: `./imagenes/${nombreIcono}.png`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -28]
+    });
+  }
+  return iconos[nombreIcono];
+}
 
 // ============================
 // CONTENEDORES GLOBALES
