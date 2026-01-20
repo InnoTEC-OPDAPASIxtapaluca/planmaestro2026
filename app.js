@@ -8,16 +8,37 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-// ============================
-// ICONO PUNTOS 
-// ============================ 
-const iconoPunto = L.icon({
- iconUrl: "./imagenes/iconopozos.png",
- iconSize: [34, 34],
- iconAnchor: [17, 34],
- popupAnchor: [0, -28]
- });
 
+// ============================
+// ICONO PUNTOS
+// ============================
+const iconoPunto = L.icon({
+  iconUrl: "./imagenes/iconopozos.png",
+  iconSize: [34, 34],
+  iconAnchor: [17, 34],
+  popupAnchor: [0, -28]
+});
+// ============================
+// ICONOS DINÁMICOS (por columna Icono)
+// ============================
+const iconos = {};
+
+function obtenerIcono(nombreIcono) {
+  if (!nombreIcono) nombreIcono = "default";
+
+  if (!iconos[nombreIcono]) {
+    iconos[nombreIcono] = L.icon({
+      iconUrl: `./imagenes/${nombreIcono}.png`,
+      iconSize: [34, 34],
+      iconAnchor: [17, 34],
+      popupAnchor: [0, -28]
+    });
+  }
+  return iconos[nombreIcono];
+}
+
+
+// ============================
 // CONTENEDORES GLOBALES
 // ============================
 const layersConPopupAbierto = [];
@@ -95,10 +116,6 @@ function parseWKT(wkt) {
 
   return null;
 }
-
-// ============================
-// HOVER / TOOLTIP
-// ============================
 
 // ============================
 // CARGA CSV
@@ -427,4 +444,3 @@ const btnCentro = document.getElementById("btnCentroMapa");
 btnCentro.addEventListener("click", () => {
   map.setView([19.35369, -98.79454], 12); // vuelve a la vista inicial
 });
-
