@@ -8,9 +8,16 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
   attribution: "© OpenStreetMap"
 }).addTo(map);
 
-
-// ============================ // ICONO PUNTOS // ============================ const iconoPunto = L.icon({ iconUrl: "./imagenes/iconopozos.png", iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -28] });
 // ============================
+// ICONO PUNTOS 
+// ============================ 
+const iconoPunto = L.icon({
+ iconUrl: "./imagenes/iconopozos.png",
+ iconSize: [34, 34],
+ iconAnchor: [17, 34],
+ popupAnchor: [0, -28]
+ });
+
 // CONTENEDORES GLOBALES
 // ============================
 const layersConPopupAbierto = [];
