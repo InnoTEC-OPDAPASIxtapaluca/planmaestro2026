@@ -87,7 +87,7 @@ function parseWKT(wkt) {
 
   if (wkt.startsWith("POINT")) {
     const [lng, lat] = wkt.replace("POINT (", "").replace(")", "").split(" ").map(Number);
-    return { type: "POINT", coords: [lat, lng] };
+    return { type: "POINT", coords: [lat, lng], iconoPunto: iconos };
   }
 
   if (wkt.startsWith("LINESTRING")) {
@@ -129,7 +129,8 @@ Papa.parse("datos.csv", {
       const wkt = row.WKT?.trim();
       const apartado = row.Apartado?.trim() || "Otros";
       const bloque = row.Bloque?.trim() || "Sin bloque";
-
+      const nombreIcono = row.Icono?.trim() || "default";
+     
       if (!wkt) return;
       const geom = parseWKT(wkt);
       if (!geom) return;
@@ -139,7 +140,7 @@ Papa.parse("datos.csv", {
 
       let layer;
       if (geom.type === "POINT") {
-        layer = L.marker(geom.coords, { icon: iconoPunto })
+        layer = L.marker(geom.coords, { icon: obtenerIcono(nombreIcono) })
           .bindPopup(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
       }
 
