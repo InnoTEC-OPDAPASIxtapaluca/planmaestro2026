@@ -144,19 +144,25 @@ Papa.parse("datos.csv", {
           .bindPopup(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
       }
 
-      if (geom.type === "LINESTRING") {
-        layer = L.polyline(geom.coords, { color: "#1f21b4ff", weight: 4 })
-          .bindPopup(`<b>${row.Nombre || ""}</b>`);
-      }
+      const color = row.Icono || "#3388ff";
 
-      if (geom.type === "POLYGON") {
-        layer = L.polygon(geom.coords, {
-          color: "#ff9900",      // borde
-          fillColor: "	#ff7300",  // relleno
-          fillOpacity: 0.5,
-          weight: 2
-        }).bindPopup(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
-      }
+if (geom.type === "LINESTRING") {
+  layer = L.polyline(geom.coords, { 
+    color: color, 
+    weight: 4 
+  }).bindPopup(`<b>${row.Nombre || ""}</b>`);
+}
+
+     if (geom.type === "POLYGON") {
+  layer = L.polygon(geom.coords, {
+    color: color,        // borde
+    fillColor: color,    // relleno
+    fillOpacity: 0.5,
+    weight: 2
+  }).bindPopup(
+    `<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`
+  );
+}
 
      if (layer) {
         aplicarHover(layer, row); // 
