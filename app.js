@@ -152,7 +152,7 @@ Papa.parse("datos.csv", {
       if (geom.type === "POLYGON") {
         layer = L.polygon(geom.coords, {
           color: "#ff9900",      // borde
-          fillColor: "#ffcc66",  // relleno
+          fillColor: "	#ff7300",  // relleno
           fillOpacity: 0.5,
           weight: 2
         }).bindPopup(`<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`);
