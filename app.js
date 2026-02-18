@@ -29,7 +29,7 @@ function obtenerIcono(nombreIcono) {
   if (!iconos[nombreIcono]) {
     iconos[nombreIcono] = L.icon({
       iconUrl: `./imagenes/${nombreIcono}.png`,
-      iconSize: [34, 34],
+      iconSize: [54, 54],
       iconAnchor: [17, 34],
       popupAnchor: [0, -28]
     });
@@ -155,9 +155,9 @@ if (geom.type === "LINESTRING") {
 
      if (geom.type === "POLYGON") {
   layer = L.polygon(geom.coords, {
-    color: color,        // borde
+    color: "#000000",        // borde
     fillColor: color,    // relleno
-    fillOpacity: 0.5,
+    fillOpacity: 1.1,
     weight: 2
   }).bindPopup(
     `<b>${row.Nombre || ""}</b><br>${row.Descripción || ""}`
